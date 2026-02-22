@@ -6,9 +6,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
-import datetime
+from datetime import datetime, timezone
 
-load_dotenv()   
+load_dotenv()
 
 URL = os.getenv("DATABASE_URL")
 
@@ -23,8 +23,9 @@ class Note(Base):
     __tablename__ = "notes"
     id = Column(Integer, primary_key=True)
     title = Column(String)
+    author = Column(String, default="Baris")
     content = Column(String)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class NoteCreate(BaseModel):
     title: str
@@ -38,6 +39,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@app.get("/")
+def read_root():
+    return FileResponse("index.html")
 
 @app.get("/notes")
 def get_notes(db: Session = Depends(get_db)):
@@ -54,13 +59,10 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)):
 @app.put("/notes/{note_id}")
 def update_note(note_id: int, updated_note: NoteCreate, db: Session = Depends(get_db)):
     db_note = db.query(Note).filter(Note.id == note_id).first()
-    
     if db_note is None:
         raise HTTPException(status_code=404, detail="Note not found")
-
     db_note.title = updated_note.title
     db_note.content = updated_note.content
-    
     db.commit()
     db.refresh(db_note)
     return db_note
@@ -68,14 +70,9 @@ def update_note(note_id: int, updated_note: NoteCreate, db: Session = Depends(ge
 @app.delete("/notes/{note_id}")
 def delete_note(note_id: int, db: Session = Depends(get_db)):
     db_note = db.query(Note).filter(Note.id == note_id).first()
-    
     if db_note is None:
         raise HTTPException(status_code=404, detail="Note not found")
-
     db.delete(db_note)
     db.commit()
     return {"message": "Note deleted successfully"}
 
-@app.get("/")
-def read_root():
-    return FileResponse("index.html")
