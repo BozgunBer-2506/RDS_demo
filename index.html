@@ -17,6 +17,12 @@
     </div>
     <div id="notesList"></div>
 
+    <div>
+        <input type="text" id="titleInput" placeholder="Note Title" style="display: block; width: 100%; margin-bottom: 10px;">
+        <textarea id="contentInput" placeholder="Note Content" style="display: block; width: 100%; margin-bottom: 10px;"></textarea>
+        <button onclick="addNote()">Save Note</button>
+    </div>
+
     <script>
         const API_URL = "/notes";
 
