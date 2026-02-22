@@ -2,28 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Baris's Notes App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
     <style>
-        body { font-family: sans-serif; max-width: 500px; margin: 50px auto; background: #f4f4f4; padding: 20px; }
-        .input-group { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0056b3; }
-        .note-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        h3 { margin-top: 0; color: #333; }
-        p { color: #666; margin-bottom: 0; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .note-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
     </style>
 </head>
 <body>
-
-    <h2>Cloud Notes Management</h2>
-    
-    <div class="input-group">
-        <input type="text" id="titleInput" placeholder="Enter title...">
-        <textarea id="contentInput" placeholder="Enter note content..." rows="3"></textarea>
-        <button onclick="addNote()">Add Note to AWS</button>
-    </div>
-
+    <h1>Notes</h1>
+    <input id="titleInput" type="text" placeholder="Title">
+    <textarea id="contentInput" rows="4" placeholder="Content"></textarea>
+    <button onclick="addNote()">Add Note</button>
     <div id="notesList"></div>
 
     <script>
@@ -35,27 +27,39 @@
             const list = document.getElementById('notesList');
             list.innerHTML = notes.map(n => `
                 <div class="note-card">
-                    <h3>${n.title || 'No Title'}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>${n.title || 'No Title'}</h3>
+                        <button onclick="deleteNote(${n.id})" style="width: auto; background: #dc3545; padding: 5px 10px; margin: 0;">Delete</button>
+                    </div>
                     <p>${n.content}</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                    <small style="color: #888;">
+                        <strong>Added by:</strong> ${n.author || 'Baris'} | 
+                        <strong>Date:</strong> ${n.created_at ? new Date(n.created_at).toLocaleString() : 'N/A'}
+                    </small>
                 </div>
-            `).reverse().join(''); // Show newest first
+            `).reverse().join('');
         }
 
         async function addNote() {
             const title = document.getElementById('titleInput').value;
             const content = document.getElementById('contentInput').value;
-            
             if (!content) return alert("Content cannot be empty!");
-
             await fetch(API_URL, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ title, content })
+                body: JSON.stringify({ title, content, author: "Baris" })
             });
-
             document.getElementById('titleInput').value = '';
             document.getElementById('contentInput').value = '';
             fetchNotes();
+        }
+
+        async function deleteNote(id) {
+            if (confirm("Are you sure you want to delete this note?")) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                fetchNotes();
+            }
         }
 
         fetchNotes();
