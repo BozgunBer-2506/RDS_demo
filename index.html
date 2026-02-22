@@ -1,27 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Baris's Notes</title>
+    <meta charset="UTF-8">
+    <title>Baris's Notes App</title>
     <style>
-        body { font-family: sans-serif; max-width: 500px; margin: 50px auto; background: #f4f4f4; }
-        .note-card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { padding: 10px; width: 70%; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        body { font-family: sans-serif; max-width: 500px; margin: 50px auto; background: #f4f4f4; padding: 20px; }
+        .input-group { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        .note-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        h3 { margin-top: 0; color: #333; }
+        p { color: #666; margin-bottom: 0; }
     </style>
 </head>
 <body>
-    <h2>My Cloud Notes</h2>
-    <div>
-        <input type="text" id="noteInput" placeholder="Write a note...">
-        <button onclick="addNote()">Add</button>
-    </div>
-    <div id="notesList"></div>
 
-    <div>
-        <input type="text" id="titleInput" placeholder="Note Title" style="display: block; width: 100%; margin-bottom: 10px;">
-        <textarea id="contentInput" placeholder="Note Content" style="display: block; width: 100%; margin-bottom: 10px;"></textarea>
-        <button onclick="addNote()">Save Note</button>
+    <h2>Cloud Notes Management</h2>
+    
+    <div class="input-group">
+        <input type="text" id="titleInput" placeholder="Enter title...">
+        <textarea id="contentInput" placeholder="Enter note content..." rows="3"></textarea>
+        <button onclick="addNote()">Add Note to AWS</button>
     </div>
+
+    <div id="notesList"></div>
 
     <script>
         const API_URL = "/notes";
@@ -30,17 +33,28 @@
             const res = await fetch(API_URL);
             const notes = await res.json();
             const list = document.getElementById('notesList');
-            list.innerHTML = notes.map(n => `<div class="note-card">${n.content}</div>`).join('');
+            list.innerHTML = notes.map(n => `
+                <div class="note-card">
+                    <h3>${n.title || 'No Title'}</h3>
+                    <p>${n.content}</p>
+                </div>
+            `).reverse().join(''); // Show newest first
         }
 
         async function addNote() {
-            const content = document.getElementById('noteInput').value;
+            const title = document.getElementById('titleInput').value;
+            const content = document.getElementById('contentInput').value;
+            
+            if (!content) return alert("Content cannot be empty!");
+
             await fetch(API_URL, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({content})
+                body: JSON.stringify({ title, content })
             });
-            document.getElementById('noteInput').value = '';
+
+            document.getElementById('titleInput').value = '';
+            document.getElementById('contentInput').value = '';
             fetchNotes();
         }
 
