@@ -11,11 +11,13 @@ load_dotenv()
 
 URL = os.getenv("DATABASE_URL")
 
+if URL is None:
+    raise ValueError("DATABASE_URL is not set in environment variables!")
+
 engine = create_engine(URL)
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# Database Model
 class Note(Base):
     __tablename__ = "notes"
     id = Column(Integer, primary_key=True)
@@ -23,14 +25,12 @@ class Note(Base):
     content = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-# Pydantic Model (For validation)
 class NoteCreate(BaseModel):
     title: str
     content: str
 
 app = FastAPI()
 
-# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:
