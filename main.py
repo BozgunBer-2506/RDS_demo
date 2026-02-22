@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from datetime import datetime, timezone
+from sqlalchemy.sql import func
 
 load_dotenv()
 
@@ -25,7 +26,7 @@ class Note(Base):
     title = Column(String)
     author = Column(String, default="Baris")
     content = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, server_default=func.now())
 
 class NoteCreate(BaseModel):
     title: str
@@ -76,3 +77,5 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Note deleted successfully"}
 
+Base.metadata.drop_all(bind=engine) 
+Base.metadata.create_all(bind=engine)
