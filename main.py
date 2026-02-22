@@ -5,6 +5,7 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
 import datetime
 
 load_dotenv()   
@@ -74,3 +75,7 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     db.delete(db_note)
     db.commit()
     return {"message": "Note deleted successfully"}
+
+@app.get("/")
+def read_root():
+    return FileResponse("index.html")
