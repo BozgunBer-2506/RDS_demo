@@ -77,5 +77,3 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Note deleted successfully"}
 
-Base.metadata.drop_all(bind=engine) 
-Base.metadata.create_all(bind=engine)
